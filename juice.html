@@ -370,13 +370,15 @@ function clearAll() {
 function update() {
   const used = mixture.length;
   $("unitsUsed").textContent = used;
-  $("barFill").style.width = (used / MAX_UNITS * 100) + "%";
-
-  // Color the bar to match the last selected fruit
-  if (lastFruitIdx >= 0) {
-    $("barFill").style.background = css(FRUITS[lastFruitIdx].rgb);
-  } else {
-    $("barFill").style.background = "linear-gradient(90deg, #a78bfa, #6d28d9)";
+  // Build stacked bar segments in selection order
+  const segWrap = $("barSegments");
+  segWrap.innerHTML = "";
+  for (const idx of mixture) {
+    const seg = document.createElement("div");
+    seg.className = "bar-segment";
+    seg.style.width = (1 / MAX_UNITS * 100) + "%";
+    seg.style.background = css(FRUITS[idx].rgb);
+    segWrap.appendChild(seg);
   }
 
   const counts = {};
