@@ -41,11 +41,9 @@
     flex-shrink: 0;
   }
   .order-info { font-size: 15px; line-height: 1.5; }
-  .order-info .rgb { font-family: "SF Mono", Menlo, monospace; font-size: 14px; color: #555; }
 
   .mixture-row { display: flex; align-items: center; gap: 14px; }
   .mixture-info { font-size: 15px; line-height: 1.5; }
-  .mixture-info .rgb { font-family: "SF Mono", Menlo, monospace; font-size: 14px; color: #555; }
   .empty-hint { color: #bbb; font-style: italic; }
 
   .budget {
@@ -54,8 +52,8 @@
   }
   .budget .units { font-size: 16px; font-weight: 600; }
   .budget .units span { color: #5b3a8e; }
-  .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #6d28d9); width: 0%; transition: width 0.15s; }
+  .bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0%; transition: width 0.15s, background 0.3s; border-radius: 5px; }
 
   .fruits {
     display: grid;
@@ -74,13 +72,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     cursor: pointer;
     transition: transform 0.08s;
   }
   .fruit-btn:active { transform: scale(0.94); }
+  .fruit-btn .emoji { font-size: 36px; line-height: 1; }
   .fruit-btn .dot {
-    width: 40px; height: 40px; border-radius: 50%;
+    width: 18px; height: 18px; border-radius: 50%;
     border: 2px solid rgba(0,0,0,0.15);
   }
   .fruit-btn .name { font-size: 12px; font-weight: 600; color: #444; }
@@ -106,7 +105,89 @@
   .ctrl-btn:disabled { opacity: 0.4; cursor: default; }
   .btn-undo { background: #f1f5f9; color: #475569; }
   .btn-clear { background: #fee2e2; color: #b91c1c; }
-  .btn-submit { background: linear-gradient(90deg, #7c3aed, #5b21b6); color: #fff; }
+  .btn-mixer { background: linear-gradient(90deg, #7c3aed, #5b21b6); color: #fff; }
+
+  /* ── Mixer animation ── */
+  .mixer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 18px;
+  }
+  .mixer-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .mixer-motor {
+    width: 50px; height: 22px;
+    background: linear-gradient(180deg, #bbb, #999);
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 2px;
+  }
+  .mixer-cup {
+    width: 72px; height: 110px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(225,225,235,0.85));
+    border: 3px solid #ccc;
+    border-radius: 8px 8px 18px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mixer-liquid {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 0%;
+    transition: height 0.6s ease, background 0.4s;
+    border-radius: 0 0 14px 14px;
+  }
+  .mixer-blades {
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 36px; height: 36px;
+  }
+  .mixer-blades .blade {
+    position: absolute;
+    width: 28px; height: 4px;
+    background: #999;
+    border-radius: 2px;
+    top: 50%; left: 50%;
+    transform-origin: center;
+  }
+  .mixer-blades .blade:nth-child(1) { transform: translate(-50%,-50%) rotate(0deg); }
+  .mixer-blades .blade:nth-child(2) { transform: translate(-50%,-50%) rotate(60deg); }
+  .mixer-blades .blade:nth-child(3) { transform: translate(-50%,-50%) rotate(120deg); }
+  .mixer-base {
+    width: 92px; height: 18px;
+    background: linear-gradient(180deg, #888, #666);
+    border-radius: 4px;
+    margin-top: -2px;
+  }
+
+  .mixer-on .mixer-blades { animation: spin 0.25s linear infinite; }
+  .mixer-on .mixer-cup { animation: shake 0.08s infinite; }
+  .mixer-on .mixer-liquid { animation: bubble 0.4s ease-in-out infinite; }
+
+  @keyframes spin {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to   { transform: translateX(-50%) rotate(360deg); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-2px); }
+    75%      { transform: translateX(2px); }
+  }
+  @keyframes bubble {
+    0%, 100% { transform: scaleY(1); }
+    50%      { transform: scaleY(1.06); }
+  }
+
+  .mixer-status {
+    margin-top: 14px;
+    font-size: 15px;
+    color: #888;
+    font-weight: 600;
+  }
 
   .result {
     text-align: center;
@@ -114,9 +195,14 @@
     line-height: 1.6;
   }
   .result .score { font-size: 44px; font-weight: 800; color: #5b3a8e; }
+  .result .result-swatch {
+    width: 64px; height: 64px; border-radius: 14px;
+    border: 3px solid rgba(0,0,0,0.12);
+    margin: 12px auto;
+  }
   .result .verdict { font-size: 16px; color: #666; margin-top: 4px; }
   .result .btn-new {
-    margin-top: 12px;
+    margin-top: 14px;
     border: none;
     border-radius: 14px;
     padding: 14px 34px;
@@ -134,21 +220,19 @@
   <h1>🥤 Smoothie Match</h1>
   <div class="subtitle">Mix the smoothie to match the customer's order</div>
 
+  <!-- Target: swatch only, no RGB -->
   <div class="card">
     <h2>Customer's Order</h2>
     <div class="order-row">
       <div class="swatch" id="targetSwatch"></div>
-      <div class="order-info">
-        Target color<br>
-        <span class="rgb" id="targetRgb"></span>
-      </div>
+      <div class="order-info">Target color</div>
     </div>
   </div>
 
+  <!-- Mixture: fruit summary + bar, no color swatch, no RGB -->
   <div class="card">
     <h2>Your Mixture</h2>
     <div class="mixture-row">
-      <div class="swatch" id="mixSwatch" style="background:#fff"></div>
       <div class="mixture-info" id="mixInfo">
         <span class="empty-hint">Tap fruits to add units…</span>
       </div>
@@ -159,16 +243,37 @@
     <div class="bar"><div class="bar-fill" id="barFill"></div></div>
   </div>
 
+  <!-- Fruit buttons: emoji + color dot + name + count -->
   <div class="fruits" id="fruits"></div>
 
+  <!-- Controls -->
   <div class="controls" id="controls">
     <button class="ctrl-btn btn-undo" id="btnUndo">↩ Undo</button>
     <button class="ctrl-btn btn-clear" id="btnClear">✕ Clear</button>
-    <button class="ctrl-btn btn-submit" id="btnSubmit">Serve!</button>
+    <button class="ctrl-btn btn-mixer" id="btnMixer">🌀 Turn On Mixer</button>
   </div>
 
+  <!-- Mixer animation card (hidden until triggered) -->
+  <div class="card mixer-card hidden" id="mixerCard">
+    <div class="mixer-scene" id="mixerScene">
+      <div class="mixer-motor"></div>
+      <div class="mixer-cup">
+        <div class="mixer-liquid" id="mixerLiquid"></div>
+        <div class="mixer-blades">
+          <div class="blade"></div>
+          <div class="blade"></div>
+          <div class="blade"></div>
+        </div>
+      </div>
+      <div class="mixer-base"></div>
+    </div>
+    <div class="mixer-status" id="mixerStatus">Mixing…</div>
+  </div>
+
+  <!-- Result: score + color swatch + verdict -->
   <div class="card result hidden" id="resultCard">
     <div class="score" id="scoreText"></div>
+    <div class="result-swatch" id="resultSwatch"></div>
     <div class="verdict" id="verdictText"></div>
     <button class="btn-new" id="btnNew">New Order</button>
   </div>
@@ -177,28 +282,27 @@
 "use strict";
 
 const FRUITS = [
-  { name: "Banana",    rgb: [255, 243, 176] },
-  { name: "Strawberry",rgb: [220, 20, 60] },
-  { name: "Blueberry", rgb: [75, 0, 130] },
-  { name: "Grapes",    rgb: [128, 0, 128] },
-  { name: "Orange",    rgb: [255, 165, 0] },
-  { name: "Lemon",     rgb: [255, 255, 0] },
-  { name: "Kiwi",      rgb: [106, 168, 79] },
-  { name: "Yogurt",    rgb: [255, 255, 255] }
+  { name: "Banana",     rgb: [255, 243, 176], emoji: "🍌" },
+  { name: "Strawberry", rgb: [220, 20, 60],   emoji: "🍓" },
+  { name: "Blueberry",  rgb: [75, 0, 130],    emoji: "🫐" },
+  { name: "Grapes",     rgb: [128, 0, 128],   emoji: "🍇" },
+  { name: "Orange",     rgb: [255, 165, 0],   emoji: "🍊" },
+  { name: "Lemon",      rgb: [255, 255, 0],   emoji: "🍋" },
+  { name: "Kiwi",       rgb: [106, 168, 79],  emoji: "🥝" },
+  { name: "Yogurt",     rgb: [255, 255, 255], emoji: "🥛" }
 ];
 
 const MAX_UNITS = 30;
 
-let target = null;      // [r, g, b]
-let mixture = [];       // list of fruit indices, one per unit
+let target = null;
+let mixture = [];
+let lastFruitIdx = -1;
 
 const $ = id => document.getElementById(id);
 
 function css(rgb) { return "rgb(" + rgb.join(",") + ")"; }
-
 function randInt(n) { return Math.floor(Math.random() * n); }
 
-// Randomized order: average of 1-3 random fruit units (always solvable).
 function newOrder() {
   const n = 1 + randInt(3);
   let r = 0, g = 0, b = 0;
@@ -209,7 +313,6 @@ function newOrder() {
   target = [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
 }
 
-// Mixture color = rounded average of each unit's RGB.
 function mixtureColor() {
   if (mixture.length === 0) return null;
   let r = 0, g = 0, b = 0;
@@ -222,7 +325,6 @@ function mixtureColor() {
   return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
 }
 
-// Accuracy = 100 - (mean per-channel absolute difference / 255 * 100), rounded.
 function accuracy(mix) {
   const meanAbs = (Math.abs(mix[0] - target[0]) + Math.abs(mix[1] - target[1]) + Math.abs(mix[2] - target[2])) / 3;
   return Math.round(100 - (meanAbs / 255) * 100);
@@ -235,6 +337,7 @@ function renderFruits() {
     const btn = document.createElement("button");
     btn.className = "fruit-btn";
     btn.innerHTML =
+      '<div class="emoji">' + f.emoji + '</div>' +
       '<div class="dot" style="background:' + css(f.rgb) + '"></div>' +
       '<div class="name">' + f.name + '</div>' +
       '<div class="count" id="count' + i + '">0</div>';
@@ -246,17 +349,20 @@ function renderFruits() {
 function addUnit(i) {
   if (mixture.length >= MAX_UNITS) return;
   mixture.push(i);
+  lastFruitIdx = i;
   update();
 }
 
 function undo() {
   if (mixture.length === 0) return;
   mixture.pop();
+  lastFruitIdx = mixture.length > 0 ? mixture[mixture.length - 1] : -1;
   update();
 }
 
 function clearAll() {
   mixture = [];
+  lastFruitIdx = -1;
   update();
 }
 
@@ -264,6 +370,13 @@ function update() {
   const used = mixture.length;
   $("unitsUsed").textContent = used;
   $("barFill").style.width = (used / MAX_UNITS * 100) + "%";
+
+  // Color the bar to match the last selected fruit
+  if (lastFruitIdx >= 0) {
+    $("barFill").style.background = css(FRUITS[lastFruitIdx].rgb);
+  } else {
+    $("barFill").style.background = "linear-gradient(90deg, #a78bfa, #6d28d9)";
+  }
 
   const counts = {};
   for (const idx of mixture) counts[idx] = (counts[idx] || 0) + 1;
@@ -273,25 +386,54 @@ function update() {
     el.classList.toggle("show", (counts[i] || 0) > 0);
   });
 
-  const mix = mixtureColor();
-  if (mix) {
-    $("mixSwatch").style.background = css(mix);
-    $("mixInfo").innerHTML = "Current color<br><span class='rgb'>RGB " + mix.join(", ") + "</span>";
+  // Show fruit summary (emoji + count, no color, no RGB)
+  if (used > 0) {
+    const parts = [];
+    FRUITS.forEach((f, i) => {
+      if (counts[i]) parts.push(counts[i] + "× " + f.emoji);
+    });
+    $("mixInfo").innerHTML = parts.join("  ");
   } else {
-    $("mixSwatch").style.background = "#fff";
     $("mixInfo").innerHTML = "<span class='empty-hint'>Tap fruits to add units…</span>";
   }
 
   $("btnUndo").disabled = used === 0;
   $("btnClear").disabled = used === 0;
-  $("btnSubmit").disabled = used === 0;
+  $("btnMixer").disabled = used === 0;
 }
 
-function serve() {
+function turnOnMixer() {
   const mix = mixtureColor();
   if (!mix) return;
+
+  $("btnUndo").disabled = true;
+  $("btnClear").disabled = true;
+  $("btnMixer").disabled = true;
+
+  // Show mixer card
+  $("mixerCard").classList.remove("hidden");
+  $("mixerStatus").textContent = "Mixing…";
+
+  // Set liquid color and fill
+  const liquid = $("mixerLiquid");
+  liquid.style.background = css(mix);
+  liquid.style.height = "70%";
+
+  // Start animation
+  $("mixerScene").classList.add("mixer-on");
+
+  // After 2 s, stop and show result
+  setTimeout(() => {
+    $("mixerScene").classList.remove("mixer-on");
+    $("mixerStatus").textContent = "Done!";
+    setTimeout(() => showResult(mix), 500);
+  }, 2000);
+}
+
+function showResult(mix) {
   const score = accuracy(mix);
   $("scoreText").textContent = score + "%";
+  $("resultSwatch").style.background = css(mix);
   let verdict;
   if (score === 100) verdict = "🎉 Perfect match! The customer is thrilled!";
   else if (score >= 90) verdict = "👍 Great mix! Very close to the order.";
@@ -305,17 +447,23 @@ function serve() {
 
 function newRound() {
   mixture = [];
+  lastFruitIdx = -1;
   newOrder();
   $("targetSwatch").style.background = css(target);
-  $("targetRgb").textContent = "RGB " + target.join(", ");
   $("resultCard").classList.add("hidden");
+  $("mixerCard").classList.add("hidden");
   $("controls").classList.remove("hidden");
+  // Reset mixer
+  $("mixerScene").classList.remove("mixer-on");
+  $("mixerLiquid").style.height = "0%";
+  $("mixerLiquid").style.background = "transparent";
+  $("mixerStatus").textContent = "Mixing…";
   update();
 }
 
 $("btnUndo").addEventListener("click", undo);
 $("btnClear").addEventListener("click", clearAll);
-$("btnSubmit").addEventListener("click", serve);
+$("btnMixer").addEventListener("click", turnOnMixer);
 $("btnNew").addEventListener("click", newRound);
 
 renderFruits();
