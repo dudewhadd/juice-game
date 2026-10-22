@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Smoothie Match</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #fdf6ec 0%, #f3e8ff 100%);
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  h1 { font-size: 28px; margin-bottom: 4px; color: #5b3a8e; }
+  .subtitle { font-size: 14px; color: #888; margin-bottom: 14px; }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    padding: 14px 18px;
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 14px;
+  }
+  .card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 10px; }
+
+  .order-row { display: flex; align-items: center; gap: 14px; }
+  .swatch {
+    width: 74px; height: 74px; border-radius: 14px;
+    border: 3px solid rgba(0,0,0,0.12);
+    flex-shrink: 0;
+  }
+  .order-info { font-size: 15px; line-height: 1.5; }
+  .order-info .rgb { font-family: "SF Mono", Menlo, monospace; font-size: 14px; color: #555; }
+
+  .mixture-row { display: flex; align-items: center; gap: 14px; }
+  .mixture-info { font-size: 15px; line-height: 1.5; }
+  .mixture-info .rgb { font-family: "SF Mono", Menlo, monospace; font-size: 14px; color: #555; }
+  .empty-hint { color: #bbb; font-style: italic; }
+
+  .budget {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .budget .units { font-size: 16px; font-weight: 600; }
+  .budget .units span { color: #5b3a8e; }
+  .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #6d28d9); width: 0%; transition: width 0.15s; }
+
+  .fruits {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 14px;
+  }
+  .fruit-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 10px 4px;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.08s;
+  }
+  .fruit-btn:active { transform: scale(0.94); }
+  .fruit-btn .dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.15);
+  }
+  .fruit-btn .name { font-size: 12px; font-weight: 600; color: #444; }
+  .fruit-btn .count {
+    font-size: 11px; color: #fff; background: #6d28d9;
+    border-radius: 10px; padding: 1px 8px; min-width: 22px; text-align: center;
+    display: none;
+  }
+  .fruit-btn .count.show { display: block; }
+
+  .controls { display: flex; gap: 10px; width: 100%; max-width: 560px; margin-bottom: 14px; }
+  .ctrl-btn {
+    flex: 1;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.08s;
+  }
+  .ctrl-btn:active { transform: scale(0.96); }
+  .ctrl-btn:disabled { opacity: 0.4; cursor: default; }
+  .btn-undo { background: #f1f5f9; color: #475569; }
+  .btn-clear { background: #fee2e2; color: #b91c1c; }
+  .btn-submit { background: linear-gradient(90deg, #7c3aed, #5b21b6); color: #fff; }
+
+  .result {
+    text-align: center;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .result .score { font-size: 44px; font-weight: 800; color: #5b3a8e; }
+  .result .verdict { font-size: 16px; color: #666; margin-top: 4px; }
+  .result .btn-new {
+    margin-top: 12px;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 34px;
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #7c3aed, #5b21b6);
+    color: #fff;
+    cursor: pointer;
+  }
+  .result .btn-new:active { transform: scale(0.96); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <h1>🥤 Smoothie Match</h1>
+  <div class="subtitle">Mix the smoothie to match the customer's order</div>
+
+  <div class="card">
+    <h2>Customer's Order</h2>
+    <div class="order-row">
+      <div class="swatch" id="targetSwatch"></div>
+      <div class="order-info">
+        Target color<br>
+        <span class="rgb" id="targetRgb"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Your Mixture</h2>
+    <div class="mixture-row">
+      <div class="swatch" id="mixSwatch" style="background:#fff"></div>
+      <div class="mixture-info" id="mixInfo">
+        <span class="empty-hint">Tap fruits to add units…</span>
+      </div>
+    </div>
+    <div class="budget" style="margin-top:12px">
+      <div class="units"><span id="unitsUsed">0</span> / 30 units used</div>
+    </div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+  </div>
+
+  <div class="fruits" id="fruits"></div>
+
+  <div class="controls" id="controls">
+    <button class="ctrl-btn btn-undo" id="btnUndo">↩ Undo</button>
+    <button class="ctrl-btn btn-clear" id="btnClear">✕ Clear</button>
+    <button class="ctrl-btn btn-submit" id="btnSubmit">Serve!</button>
+  </div>
+
+  <div class="card result hidden" id="resultCard">
+    <div class="score" id="scoreText"></div>
+    <div class="verdict" id="verdictText"></div>
+    <button class="btn-new" id="btnNew">New Order</button>
+  </div>
+
+<script>
+"use strict";
+
+const FRUITS = [
+  { name: "Banana",    rgb: [255, 243, 176] },
+  { name: "Strawberry",rgb: [220, 20, 60] },
+  { name: "Blueberry", rgb: [75, 0, 130] },
+  { name: "Grapes",    rgb: [128, 0, 128] },
+  { name: "Orange",    rgb: [255, 165, 0] },
+  { name: "Lemon",     rgb: [255, 255, 0] },
+  { name: "Kiwi",      rgb: [106, 168, 79] },
+  { name: "Yogurt",    rgb: [255, 255, 255] }
+];
+
+const MAX_UNITS = 30;
+
+let target = null;      // [r, g, b]
+let mixture = [];       // list of fruit indices, one per unit
+
+const $ = id => document.getElementById(id);
+
+function css(rgb) { return "rgb(" + rgb.join(",") + ")"; }
+
+function randInt(n) { return Math.floor(Math.random() * n); }
+
+// Randomized order: average of 1-3 random fruit units (always solvable).
+function newOrder() {
+  const n = 1 + randInt(3);
+  let r = 0, g = 0, b = 0;
+  for (let i = 0; i < n; i++) {
+    const f = FRUITS[randInt(FRUITS.length)];
+    r += f.rgb[0]; g += f.rgb[1]; b += f.rgb[2];
+  }
+  target = [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+}
+
+// Mixture color = rounded average of each unit's RGB.
+function mixtureColor() {
+  if (mixture.length === 0) return null;
+  let r = 0, g = 0, b = 0;
+  for (const idx of mixture) {
+    r += FRUITS[idx].rgb[0];
+    g += FRUITS[idx].rgb[1];
+    b += FRUITS[idx].rgb[2];
+  }
+  const n = mixture.length;
+  return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+}
+
+// Accuracy = 100 - (mean per-channel absolute difference / 255 * 100), rounded.
+function accuracy(mix) {
+  const meanAbs = (Math.abs(mix[0] - target[0]) + Math.abs(mix[1] - target[1]) + Math.abs(mix[2] - target[2])) / 3;
+  return Math.round(100 - (meanAbs / 255) * 100);
+}
+
+function renderFruits() {
+  const wrap = $("fruits");
+  wrap.innerHTML = "";
+  FRUITS.forEach((f, i) => {
+    const btn = document.createElement("button");
+    btn.className = "fruit-btn";
+    btn.innerHTML =
+      '<div class="dot" style="background:' + css(f.rgb) + '"></div>' +
+      '<div class="name">' + f.name + '</div>' +
+      '<div class="count" id="count' + i + '">0</div>';
+    btn.addEventListener("click", () => addUnit(i));
+    wrap.appendChild(btn);
+  });
+}
+
+function addUnit(i) {
+  if (mixture.length >= MAX_UNITS) return;
+  mixture.push(i);
+  update();
+}
+
+function undo() {
+  if (mixture.length === 0) return;
+  mixture.pop();
+  update();
+}
+
+function clearAll() {
+  mixture = [];
+  update();
+}
+
+function update() {
+  const used = mixture.length;
+  $("unitsUsed").textContent = used;
+  $("barFill").style.width = (used / MAX_UNITS * 100) + "%";
+
+  const counts = {};
+  for (const idx of mixture) counts[idx] = (counts[idx] || 0) + 1;
+  FRUITS.forEach((f, i) => {
+    const el = $("count" + i);
+    el.textContent = counts[i] || 0;
+    el.classList.toggle("show", (counts[i] || 0) > 0);
+  });
+
+  const mix = mixtureColor();
+  if (mix) {
+    $("mixSwatch").style.background = css(mix);
+    $("mixInfo").innerHTML = "Current color<br><span class='rgb'>RGB " + mix.join(", ") + "</span>";
+  } else {
+    $("mixSwatch").style.background = "#fff";
+    $("mixInfo").innerHTML = "<span class='empty-hint'>Tap fruits to add units…</span>";
+  }
+
+  $("btnUndo").disabled = used === 0;
+  $("btnClear").disabled = used === 0;
+  $("btnSubmit").disabled = used === 0;
+}
+
+function serve() {
+  const mix = mixtureColor();
+  if (!mix) return;
+  const score = accuracy(mix);
+  $("scoreText").textContent = score + "%";
+  let verdict;
+  if (score === 100) verdict = "🎉 Perfect match! The customer is thrilled!";
+  else if (score >= 90) verdict = "👍 Great mix! Very close to the order.";
+  else if (score >= 70) verdict = "🙂 Not bad, but the customer frowns a little.";
+  else if (score >= 40) verdict = "😕 Hmm… that's not quite the color they asked for.";
+  else verdict = "😖 Oh no! The customer spits it out!";
+  $("verdictText").textContent = verdict;
+  $("resultCard").classList.remove("hidden");
+  $("controls").classList.add("hidden");
+}
+
+function newRound() {
+  mixture = [];
+  newOrder();
+  $("targetSwatch").style.background = css(target);
+  $("targetRgb").textContent = "RGB " + target.join(", ");
+  $("resultCard").classList.add("hidden");
+  $("controls").classList.remove("hidden");
+  update();
+}
+
+$("btnUndo").addEventListener("click", undo);
+$("btnClear").addEventListener("click", clearAll);
+$("btnSubmit").addEventListener("click", serve);
+$("btnNew").addEventListener("click", newRound);
+
+renderFruits();
+newRound();
+</script>
+</body>
+</html>
